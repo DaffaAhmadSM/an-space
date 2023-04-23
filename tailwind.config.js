@@ -7,6 +7,9 @@ export default {
         'base' : '#E1735E',
         'secondary' : '#FFD144',
         'tertiary' : '#F5F5DC',
+      },
+      backgroundImage: {
+        artUrl: 'url(src/lib/assets/background-image/background-url.png)',
       }
     },
     fontFamily: {

@@ -5,6 +5,7 @@
   import profile_webp from '$lib/assets/profile/profile.webp';
   import profile_jpeg from '$lib/assets/profile/profile.jpeg';
   import About from '$lib/components/about.svelte';
+  import Art from '$lib/components/artUrl.svelte';
   // import Activity from '$lib/components/activity.svelte';
   // import SocialMedia from '$lib/components/socialmedia.svelte';
 </script>
@@ -25,10 +26,7 @@
       <About />
     </section>
     <section id="art" class="h-screen snap-center">
-      <About />
-    </section>
-    <section id="contact" class="h-screen snap-center">
-      <About />
+      <Art />
     </section>
     <!-- <section id="activity" class="h-screen snap-center">
       <Activity />
