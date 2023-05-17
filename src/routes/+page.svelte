@@ -14,9 +14,9 @@
 <main class="grid place-items-center content-div bg-base relative wrapper">
     <section id="home" class="h-screen">
       <div class="main flex flex-col mx-auto items-center justify-center !h-screen !snap-center text-tertiary font-semibold uppercase">
-          <picture class="w-[40%] rounded-full aspect-square object-contain mb-10" width="450px">
-            <source srcset={profile_jpeg} type="image/webp" class="rounded-full aspect-square object-cover">
-            <img src="{profile_webp}" alt="profile" class="rounded-full aspect-square object-cover">
+          <picture class="max-2xl:w-[40%] mb-10">
+            <source srcset={profile_jpeg} type="image/webp" class="rounded-full aspect-square object-cover" width="300">
+            <img src="{profile_webp}" alt="profile" class="rounded-full aspect-square object-cover" width="300">
           </picture>
           <div class="md:text-3xl xl:text-5xl sm:text-xl min-[2400px]:text-9xl max-[360px]:text-sm whitespace-pre-line text-center tracking-baseSpace !leading-relaxed">
             HELLOoo ~
