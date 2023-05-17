@@ -1,6 +1,7 @@
 
 <script>
 	// import profile from '$lib/assets/profile/profile.png';
+	import { page } from '$app/stores';
 	import '../app.css';
 	import { fade, slide } from 'svelte/transition';
 	let showMenu = false;
@@ -8,14 +9,19 @@
 	function toggleMenu() {
 		showMenu = !showMenu;
 	}
+	function onTop() {
+		window.scrollTo(0, 0);
+	}
  </script>
-<div class="h-screen bg-base font-base">
 	<nav class="top-0 bg-secondary w-full font-base fixed z-10 text-base">
 		<div class="mx-14">
 		  <div class="flex items-center justify-between h-20">
 			<div class="flex-shrink-0">
-			  <!-- svelte-ignore a11y-invalid-attribute -->
-			  <a href="/" class="font-semibold text-3xl tracking-baseSpace">HOME</a>
+				{#if $page.path != '/'}
+				<button class="font-semibold text-3xl tracking-baseSpace">HOME</button>
+				{:else}
+				<a href="/" class="font-semibold text-3xl tracking-baseSpace">HOME</a>
+				{/if}
 			</div>
 			<button class="block md:hidden text-white focus:outline-none" on:click={toggleMenu} aria-label="nav-toggle" id="nav-toggle" title="nav-toggle">
 			  <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -45,9 +51,22 @@
 		  </div>
 		</div>
 		{/if}
-	  </nav>
+	</nav>
+	
+	<div class="scroll-container max-h-screen font-base">
 	<slot />
-</div>
+	</div>
+
+<style>
+	.scroll-container{
+    scroll-snap-type: y mandatory;
+    overflow: scroll;
+	scroll-behavior: smooth;
+  }
+  .scroll-container::-webkit-scrollbar {
+	display: none;
+  }
+</style>
 
 
   

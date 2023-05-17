@@ -6,11 +6,13 @@
   import profile_jpeg from '$lib/assets/profile/profile.jpeg';
   import About from '$lib/components/about.svelte';
   import Art from '$lib/components/artUrl.svelte';
+	import Contact from '$lib/components/contact.svelte';
+  import bgImage from '$lib/assets/background-image/bg-contact-lan.jpg';
   // import Activity from '$lib/components/activity.svelte';
   // import SocialMedia from '$lib/components/socialmedia.svelte';
 </script>
-<main class="h-full grid place-items-center content-div scroll-container">
-    <section id="home">
+<main class="grid place-items-center content-div bg-base relative wrapper">
+    <section id="home" class="h-screen">
       <div class="main flex flex-col mx-auto items-center justify-center !h-screen !snap-center text-tertiary font-semibold uppercase">
           <picture class="w-[40%] rounded-full aspect-square object-contain mb-10" width="450px">
             <source srcset={profile_jpeg} type="image/webp" class="rounded-full aspect-square object-cover">
@@ -28,22 +30,17 @@
     <section id="art" class="h-screen snap-center">
       <Art />
     </section>
-    <!-- <section id="activity" class="h-screen snap-center">
-      <Activity />
+    <section id="contact" class="h-screen snap-center bg-cover" style="background-image: url({bgImage}); background-repeat: no-repeat;">
+      <Contact />
     </section>
-    <section id="social-media" class="h-screen snap-center">
-      <SocialMedia />
-    </section> -->
 </main>
 
 <style>
 	.content-div::-webkit-scrollbar {
 		display: none;
 	}
-  .scroll-container{
-    scroll-snap-type: y mandatory;
-    overflow-y: scroll;
-    scroll-behavior: smooth;
+  .wrapper section {
+    scroll-snap-align: start;
   }
 </style>
 
