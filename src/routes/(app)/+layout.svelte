@@ -6,7 +6,6 @@
 	import { slide } from 'svelte/transition';
 	let showMenu = false;
 	let top;
-	console.log($page);	
 	function toggleMenu() {
 		showMenu = !showMenu;
 	}
