@@ -2,10 +2,11 @@
 <script>
 	// import profile from '$lib/assets/profile/profile.png';
 	import { page } from '$app/stores';
-	import '../app.css';
-	import { fade, slide } from 'svelte/transition';
+	import '../../app.css';
+	import { slide } from 'svelte/transition';
 	let showMenu = false;
 	let top;
+	console.log($page);	
 	function toggleMenu() {
 		showMenu = !showMenu;
 	}
@@ -18,7 +19,7 @@
 			<div class="mx-14">
 			  <div class="flex items-center justify-between h-20">
 				<div class="flex-shrink-0">
-					{#if $page.route.id === '/'}
+					{#if $page.route.id === '/(app)'}
 					<button class="font-semibold text-3xl tracking-baseSpace" on:click={onTop}>HOME</button>
 					{:else}
 					<a href="/" class="font-semibold text-3xl tracking-baseSpace">HOME</a>
