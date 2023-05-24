@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     let imageContainer;
+    export let objectFit = "cover";
     export let images = [
         {
             url: "aaaaa",
@@ -23,7 +24,7 @@
 <div class="content md:justify-between justify-center" bind:this={imageContainer}>
     {#each images as image}
             <!-- svelte-ignore a11y-img-redundant-alt -->
-            <img src={image.url} alt="image" class="item inline-block object-cover aspect-[2/3] rounded-lg" width="200px" id="{image.id}"/>
+            <img src={image.url} alt="image" class="item inline-block aspect-[2/3] rounded-lg" style="object-fit: {objectFit};" width="200px" id="{image.id}"/>
     {/each}
  </div>
 
