@@ -41,7 +41,9 @@
     ]
     let aspectRatio = "1/1";
 
-    
+    let columnCount = 4;
+
+    let objectFit = "scale-down";
 
     function handleBack() {
         history.back();
@@ -57,8 +59,8 @@
         </div>
         <div class="container gap-6 flex flex-col">
             <p class="lg:text-4xl lg:translate-x-3 font-base font-semibold text-base lg:tracking-semi text-2xl max-lg:self-center">Logo :</p>
-            <div class="overflow-y-scroll h-[50vh] image-container">
-                <ImageCard images={imageUrl} aspectRatio={aspectRatio}/>
+            <div class="overflow-y-scroll h-[65vh] image-container">
+                <ImageCard images={imageUrl} aspectRatio={aspectRatio} columnCount={columnCount} objectFit={objectFit}/>
             </div>
             <div class="self-center">
                 <p class="md:text-2xl font-base font-semibold text-base text-sm">Scroll to view more</p>

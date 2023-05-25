@@ -65,7 +65,7 @@
         </div>
         <div class="container gap-6 flex flex-col">
             <p class="lg:text-4xl lg:translate-x-3 font-base font-semibold text-base lg:tracking-semi text-2xl max-lg:self-center">commissions :</p>
-            <div class="overflow-y-scroll h-[50vh] image-container">
+            <div class="overflow-y-scroll h-[70vh] image-container">
                 <ImageCard images={imageUrl} objectFit={objectFit}/>
             </div>
             <div class="self-center">

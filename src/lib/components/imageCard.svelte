@@ -3,6 +3,7 @@
     let imageContainer;
     export let columnCount = 4;
     export let aspectRatio = 'auto';
+    export let objectFit = 'contain';
     export let images = [
         {
             url: "aaaaa",
@@ -25,7 +26,7 @@
 <div class="content" bind:this={imageContainer} style="-webkit-column-count:auto; column-count:{columnCount};">
     {#each images as image}
             <!-- svelte-ignore a11y-img-redundant-alt -->
-            <img src={image.url} alt="image" class="item" id="{image.id}" style="aspect-ratio: {aspectRatio};"/>
+            <img src={image.url} alt="image" class="item" id="{image.id}" style="aspect-ratio: {aspectRatio}; object-fit:{objectFit}"/>
     {/each}
  </div>
 
