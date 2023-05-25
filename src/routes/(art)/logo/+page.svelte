@@ -39,7 +39,7 @@
             id: "image7"
         },
     ]
-    let objectFit = "scale-down";
+    let aspectRatio = "1/1";
 
     
 
@@ -58,7 +58,7 @@
         <div class="container gap-6 flex flex-col">
             <p class="lg:text-4xl lg:translate-x-3 font-base font-semibold text-base lg:tracking-semi text-2xl max-lg:self-center">Logo :</p>
             <div class="overflow-y-scroll h-[50vh] image-container">
-                <ImageCard images={imageUrl} objectFit={objectFit}/>
+                <ImageCard images={imageUrl} aspectRatio={aspectRatio}/>
             </div>
             <div class="self-center">
                 <p class="md:text-2xl font-base font-semibold text-base text-sm">Scroll to view more</p>
