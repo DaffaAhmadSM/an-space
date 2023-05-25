@@ -26,7 +26,7 @@
 <div class="content" bind:this={imageContainer} style="-webkit-column-count:auto; column-count:{columnCount};">
     {#each images as image}
             <!-- svelte-ignore a11y-img-redundant-alt -->
-            <img src={image.url} alt="image" class="item" id="{image.id}" style="aspect-ratio: {aspectRatio}; object-fit:{objectFit}"/>
+            <img src={image.url} alt="image" class="item" id="{image.id}" style="aspect-ratio: {aspectRatio}; object-fit:{objectFit}" oncontextmenu="return false;"/>
     {/each}
  </div>
 
@@ -38,5 +38,13 @@
     }
     .item {
     margin: 10px;
+    }
+    img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;  
     }
  </style>
