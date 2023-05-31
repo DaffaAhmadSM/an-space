@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     let imageContainer;
+    let dialog;
     export let columnCount = 4;
     export let aspectRatio = 'auto';
     export let objectFit = 'contain';
@@ -10,15 +11,26 @@
             id: "aaaaa"
         }
     ];
-
+    let imgSrc;
     onMount(() => {
         const images = imageContainer.querySelectorAll("img");
-        let imgSrc;
         images.forEach((img) => {
         img.addEventListener("click", (e) => {
             imgSrc = e.target.src;
-            console.log(imgSrc);
+            dialog.showModal();
         });
+
+        dialog.addEventListener("click", e => {
+        const dialogDimensions = dialog.getBoundingClientRect()
+        if (
+            e.clientX < dialogDimensions.left ||
+            e.clientX > dialogDimensions.right ||
+            e.clientY < dialogDimensions.top ||
+            e.clientY > dialogDimensions.bottom
+        ) {
+            dialog.close()
+        }
+        })
         
     });
     });
@@ -28,6 +40,11 @@
             <!-- svelte-ignore a11y-img-redundant-alt -->
             <img src={image.url} alt="image" class="item" id="{image.id}" style="aspect-ratio: {aspectRatio}; object-fit:{objectFit}" oncontextmenu="return false;"/>
     {/each}
+
+    <dialog bind:this={dialog} id="dialog">
+        <!-- svelte-ignore a11y-img-redundant-alt -->
+        <img src="{imgSrc}" alt="image" id="dialog-img"/>
+    </dialog>
  </div>
 
  <style>
@@ -46,5 +63,8 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;  
+    }
+    #dialog::backdrop {
+        backdrop-filter: blur(10px);
     }
  </style>
