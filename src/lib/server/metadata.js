@@ -30,6 +30,7 @@ async function compress(buffer) {
 async function ensureTable(sql) {
 	await sql`CREATE TABLE IF NOT EXISTS images (
 		id TEXT PRIMARY KEY,
+		url TEXT NOT NULL,
 		filename TEXT NOT NULL,
 		category TEXT NOT NULL,
 		original_name TEXT NOT NULL,
@@ -49,11 +50,11 @@ export async function getImages(category) {
 		const sql = neon(process.env.DATABASE_URL);
 		await ensureTable(sql);
 		const rows = category
-			? await sql`SELECT id, filename, category, original_name, uploaded_at FROM images WHERE category = ${category} ORDER BY uploaded_at DESC`
-			: await sql`SELECT id, filename, category, original_name, uploaded_at FROM images ORDER BY uploaded_at DESC`;
+			? await sql`SELECT id, url, filename, category, original_name, uploaded_at FROM images WHERE category = ${category} ORDER BY uploaded_at DESC`
+			: await sql`SELECT id, url, filename, category, original_name, uploaded_at FROM images ORDER BY uploaded_at DESC`;
 		return rows.map((r) => ({
 			id: r.id,
-			url: `/api/image/${r.id}`,
+			url: r.url,
 			filename: r.filename,
 			category: r.category,
 			originalName: r.original_name,
@@ -76,8 +77,8 @@ export async function saveImage(file, category) {
 		const { neon } = await import('@neondatabase/serverless');
 		const sql = neon(process.env.DATABASE_URL);
 		await ensureTable(sql);
-		await sql`INSERT INTO images (id, filename, category, original_name, uploaded_at, data)
-			VALUES (${id}, ${filename}, ${category}, ${file.name}, ${new Date().toISOString()}, ${buffer})`;
+		await sql`INSERT INTO images (id, filename, url, category, original_name, uploaded_at, data)
+			VALUES (${id}, ${filename}, ${'/api/image/' + id}, ${category}, ${file.name}, ${new Date().toISOString()}, ${buffer})`;
 		return {
 			id,
 			url: `/api/image/${id}`,
