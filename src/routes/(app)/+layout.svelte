@@ -44,7 +44,7 @@
 			  </div>
 			</div>
 			{#if showMenu}
-			<div transition:slide class="md:hidden absolute top-20 w-full bg-secondary">
+			<div transition:slide|global class="md:hidden absolute top-20 w-full bg-secondary">
 			  <div class="flex flex-col items-start py-4 px-4 tracking-baseSpace font-bold">
 				<a href="#about" class="hover:text-white text-xl py-2" on:click={toggleMenu}>About</a>
 				<a href="#art" class="hover:text-white text-xl py-2" on:click={toggleMenu}>Art</a>
