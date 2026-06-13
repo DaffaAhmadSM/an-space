@@ -1,13 +1,15 @@
 <script>
-	import { onMount } from 'svelte';
-	let imageContainer = $state();
-	let dialog = $state();
+	/** @type {HTMLDivElement | null} */
+	let imageContainer = $state(null);
+	/** @type {HTMLDialogElement | null} */
+	let dialog = $state(null);
+
 	/**
 	 * @typedef {Object} Props
 	 * @property {number} [columnCount]
 	 * @property {string} [aspectRatio]
 	 * @property {string} [objectFit]
-	 * @property {any} [images]
+	 * @property {{ url: string; id: string }[]} [images]
 	 */
 
 	/** @type {Props} */
@@ -15,35 +17,28 @@
 		columnCount = 4,
 		aspectRatio = 'auto',
 		objectFit = 'contain',
-		images = [
-		{
-			url: 'aaaaa',
-			id: 'aaaaa'
-		}
-	]
+		images = [{ url: '', id: '' }]
 	} = $props();
-	let imgSrc = $state();
-	onMount(() => {
-		const images = imageContainer.querySelectorAll('img');
-		images.forEach((img) => {
-			img.addEventListener('click', (e) => {
-				imgSrc = e.target.src;
-				dialog.showModal();
-			});
 
-			dialog.addEventListener('click', (e) => {
-				const dialogDimensions = dialog.getBoundingClientRect();
-				if (
-					e.clientX < dialogDimensions.left ||
-					e.clientX > dialogDimensions.right ||
-					e.clientY < dialogDimensions.top ||
-					e.clientY > dialogDimensions.bottom
-				) {
-					dialog.close();
-				}
-			});
-		});
-	});
+	let imgSrc = $state('');
+
+	function openDialog(e) {
+		imgSrc = e.target.src;
+		dialog?.showModal();
+	}
+
+	function handleDialogClick(e) {
+		if (!dialog) return;
+		const rect = dialog.getBoundingClientRect();
+		if (
+			e.clientX < rect.left ||
+			e.clientX > rect.right ||
+			e.clientY < rect.top ||
+			e.clientY > rect.bottom
+		) {
+			dialog.close();
+		}
+	}
 </script>
 
 <div
@@ -51,19 +46,23 @@
 	bind:this={imageContainer}
 	style="-webkit-column-count:auto; column-count:{columnCount};"
 >
-	{#each images as image}
+	{#each images as image (image.id)}
 		<!-- svelte-ignore a11y_img_redundant_alt -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<img
 			src={image.url}
 			alt="image"
 			class="item"
-			id={image.id}
 			style="aspect-ratio: {aspectRatio}; object-fit:{objectFit}"
 			oncontextmenu={(e) => e.preventDefault()}
+			onclick={openDialog}
+			onkeydown={(e) => e.key === 'Enter' && openDialog(e)}
+			role="button"
+			tabindex="0"
 		/>
 	{/each}
 
-	<dialog bind:this={dialog} id="dialog">
+	<dialog bind:this={dialog} id="dialog" onclick={handleDialogClick}>
 		<!-- svelte-ignore a11y_img_redundant_alt -->
 		<img src={imgSrc} alt="image" id="dialog-img" />
 	</dialog>
@@ -77,6 +76,7 @@
 	}
 	.item {
 		margin: 10px;
+		cursor: pointer;
 	}
 	img {
 		-webkit-touch-callout: none;
