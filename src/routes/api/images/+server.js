@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { getImages, saveImage, deleteImage } from '$lib/server/metadata';
+import { getImages, saveImage, deleteImage, deleteAllByCategory } from '$lib/server/metadata';
 
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ url }) {
@@ -35,9 +35,15 @@ export async function DELETE({ request, cookies }) {
 		return json({ error: 'Unauthorized' }, { status: 401 });
 	}
 
-	const { id } = await request.json();
-	if (!id) return json({ error: 'Missing id' }, { status: 400 });
+	const body = await request.json();
 
-	const ok = await deleteImage(id);
+	if (body.category && body.all === true) {
+		await deleteAllByCategory(body.category);
+		return json({ success: true });
+	}
+
+	if (!body.id) return json({ error: 'Missing id' }, { status: 400 });
+
+	const ok = await deleteImage(body.id);
 	return json({ success: ok }, { status: ok ? 200 : 404 });
 }

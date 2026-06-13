@@ -104,6 +104,23 @@ export async function saveImage(file, category) {
 	return image;
 }
 
+export async function deleteAllByCategory(category) {
+	if (isVercel()) {
+		const { neon } = await import('@neondatabase/serverless');
+		const sql = neon(process.env.DATABASE_URL);
+		await sql`DELETE FROM images WHERE category = ${category}`;
+		return;
+	}
+
+	const images = await readMetadata();
+	const toDelete = images.filter((img) => img.category === category);
+	for (const img of toDelete) {
+		const filepath = join(UPLOADS_DIR, img.filename);
+		if (existsSync(filepath)) unlinkSync(filepath);
+	}
+	await writeMetadata(images.filter((img) => img.category !== category));
+}
+
 export async function deleteImage(id) {
 	if (isVercel()) {
 		const { neon } = await import('@neondatabase/serverless');

@@ -14,6 +14,7 @@
 	let confirmDialog = $state(null);
 
 	let filteredImages = $derived(existingImages.filter((img) => img.category === category));
+	let deleteAllConfirm = $state(false);
 
 	async function loadExisting() {
 		const res = await fetch('/api/images');
@@ -100,12 +101,33 @@
 		}
 	}
 
+	function promptDeleteAll() {
+		deleteAllConfirm = true;
+		deleteTarget = null;
+		confirmDialog?.showModal();
+	}
+
 	function promptDelete(image) {
+		deleteAllConfirm = false;
 		deleteTarget = image;
 		confirmDialog?.showModal();
 	}
 
 	async function confirmDelete() {
+		if (deleteAllConfirm) {
+			const res = await fetch('/api/images', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ category, all: true })
+			});
+			if (res.ok) {
+				existingImages = existingImages.filter((img) => img.category !== category);
+			}
+			deleteAllConfirm = false;
+			confirmDialog?.close();
+			return;
+		}
+
 		if (!deleteTarget) return;
 		const res = await fetch('/api/images', {
 			method: 'DELETE',
@@ -246,6 +268,14 @@
 			<div class="text-sm text-gray-500 pb-2">
 				{filteredImages.length} image(s)
 			</div>
+			{#if filteredImages.length > 0}
+				<button
+					onclick={promptDeleteAll}
+					class="text-sm text-red-500 hover:text-red-700 pb-2 transition-colors"
+				>
+					Delete all in {category}
+				</button>
+			{/if}
 		</div>
 
 		<!-- Image grid -->
@@ -312,8 +342,11 @@
 <!-- Confirm delete dialog -->
 <dialog bind:this={confirmDialog} class="confirm-dialog">
 	<div class="confirm-content">
-		<h3 class="text-lg font-semibold mb-2">Delete image?</h3>
-		{#if deleteTarget}
+		{#if deleteAllConfirm}
+			<h3 class="text-lg font-semibold mb-2">Delete all images in "{category}"?</h3>
+			<p class="text-sm text-gray-500 mb-1">{filteredImages.length} image(s) will be deleted.</p>
+		{:else if deleteTarget}
+			<h3 class="text-lg font-semibold mb-2">Delete image?</h3>
 			<p
 				class="text-sm text-gray-600 mb-1 truncate max-w-[300px]"
 				title={deleteTarget.originalName}
@@ -324,7 +357,10 @@
 		<p class="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
 		<div class="flex gap-3 justify-end">
 			<button
-				onclick={() => confirmDialog?.close()}
+				onclick={() => {
+					confirmDialog?.close();
+					deleteAllConfirm = false;
+				}}
 				class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
 			>
 				Cancel
@@ -333,7 +369,7 @@
 				onclick={confirmDelete}
 				class="px-4 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors"
 			>
-				Delete
+				Delete{deleteAllConfirm ? ' all' : ''}
 			</button>
 		</div>
 	</div>
