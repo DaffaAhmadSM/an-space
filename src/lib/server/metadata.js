@@ -1,23 +1,31 @@
 import { randomUUID } from 'crypto';
-import { env } from '$env/dynamic/private';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
-
-const useBlob = !!env.BLOB_READ_WRITE_TOKEN;
+import sharp from 'sharp';
 
 const DATA_DIR = 'data';
 const UPLOADS_DIR = 'static/uploads';
 const METADATA_FILE = join(DATA_DIR, 'images.json');
 const METADATA_BLOB = '_metadata/images.json';
 
-let blob;
-if (useBlob) {
-	blob = await import('@vercel/blob');
+function isBlob() {
+	return !!(process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL);
 }
 
 function ensureDirs() {
 	if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
 	if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+/** @param {Buffer} buffer @param {string} ext */
+async function compress(buffer, ext) {
+	if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+		return await sharp(buffer)
+			.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
+			.webp({ quality: 80 })
+			.toBuffer();
+	}
+	return buffer;
 }
 
 /** @param {string} [category] */
@@ -31,13 +39,16 @@ export async function getImages(category) {
 export async function saveImage(file, category) {
 	const images = await readMetadata();
 	const id = randomUUID();
-	const ext = file.name.split('.').pop() || 'png';
+	let ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+	let buffer = Buffer.from(await file.arrayBuffer());
+	buffer = await compress(buffer, ext);
+	ext = 'webp';
 	const filename = `${id}.${ext}`;
-	const buffer = Buffer.from(await file.arrayBuffer());
 
 	let url;
-	if (useBlob) {
-		const result = await blob.put(`${category}/${filename}`, buffer, {
+	if (isBlob()) {
+		const { put } = await import('@vercel/blob');
+		const result = await put(`${category}/${filename}`, buffer, {
 			access: 'public',
 			addRandomSuffix: false
 		});
@@ -68,9 +79,10 @@ export async function deleteImage(id) {
 	if (index === -1) return false;
 
 	const image = images[index];
-	if (useBlob) {
+	if (isBlob()) {
 		try {
-			await blob.del(image.url);
+			const { del } = await import('@vercel/blob');
+			await del(image.url);
 		} catch (e) {
 			// blob may already be gone
 		}
@@ -85,10 +97,11 @@ export async function deleteImage(id) {
 }
 
 async function readMetadata() {
-	if (useBlob) {
+	if (isBlob()) {
 		try {
-			const { blob: b } = await blob.get(METADATA_BLOB);
-			const text = await b.text();
+			const { get } = await import('@vercel/blob');
+			const { blob } = await get(METADATA_BLOB);
+			const text = await blob.text();
 			return JSON.parse(text);
 		} catch {
 			return [];
@@ -101,8 +114,9 @@ async function readMetadata() {
 }
 
 async function writeMetadata(data) {
-	if (useBlob) {
-		await blob.put(METADATA_BLOB, JSON.stringify(data, null, 2), {
+	if (isBlob()) {
+		const { put } = await import('@vercel/blob');
+		await put(METADATA_BLOB, JSON.stringify(data, null, 2), {
 			access: 'public',
 			addRandomSuffix: false
 		});
