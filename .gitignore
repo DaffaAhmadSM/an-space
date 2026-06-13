@@ -10,3 +10,4 @@ node_modules
 /static/uploads
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+/.vercel

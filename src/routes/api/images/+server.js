@@ -5,7 +5,7 @@ import { getImages, saveImage, deleteImage } from '$lib/server/metadata';
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ url }) {
 	const category = url.searchParams.get('category');
-	const images = getImages(category || undefined);
+	const images = await getImages(category || undefined);
 	return json(images);
 }
 
@@ -38,6 +38,6 @@ export async function DELETE({ request, cookies }) {
 	const { id } = await request.json();
 	if (!id) return json({ error: 'Missing id' }, { status: 400 });
 
-	const ok = deleteImage(id);
+	const ok = await deleteImage(id);
 	return json({ success: ok }, { status: ok ? 200 : 404 });
 }
