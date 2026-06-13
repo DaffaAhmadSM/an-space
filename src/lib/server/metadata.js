@@ -1,15 +1,14 @@
 import { randomUUID } from 'crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
-
-import sharp from 'sharp';
+import { env } from '$env/dynamic/private';
 
 const DATA_DIR = 'data';
 const UPLOADS_DIR = 'data/uploads';
 const METADATA_FILE = join(DATA_DIR, 'images.json');
 
 function isVercel() {
-	return !!process.env.DATABASE_URL;
+	return !!env.DATABASE_URL;
 }
 
 function ensureDirs() {
@@ -18,10 +17,15 @@ function ensureDirs() {
 }
 
 async function compress(buffer) {
-	return await sharp(buffer)
-		.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-		.webp({ quality: 60 })
-		.toBuffer();
+	try {
+		const { default: sharp } = await import('sharp');
+		return await sharp(buffer)
+			.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
+			.webp({ quality: 80 })
+			.toBuffer();
+	} catch {
+		return buffer;
+	}
 }
 
 async function ensureTable(sql) {
@@ -44,7 +48,7 @@ async function ensureTable(sql) {
 export async function getImages(category) {
 	if (isVercel()) {
 		const { neon } = await import('@neondatabase/serverless');
-		const sql = neon(process.env.DATABASE_URL);
+		const sql = neon(env.DATABASE_URL);
 		await ensureTable(sql);
 		const rows = category
 			? await sql`SELECT id, url, filename, category, original_name, uploaded_at FROM images WHERE category = ${category} ORDER BY uploaded_at DESC`
@@ -72,7 +76,7 @@ export async function saveImage(file, category) {
 
 	if (isVercel()) {
 		const { neon } = await import('@neondatabase/serverless');
-		const sql = neon(process.env.DATABASE_URL);
+		const sql = neon(env.DATABASE_URL);
 		await ensureTable(sql);
 		await sql`INSERT INTO images (id, filename, url, category, original_name, uploaded_at, data)
 			VALUES (${id}, ${filename}, ${'/api/image/' + id}, ${category}, ${file.name}, ${new Date().toISOString()}, ${buffer})`;
@@ -107,7 +111,7 @@ export async function saveImage(file, category) {
 export async function deleteAllByCategory(category) {
 	if (isVercel()) {
 		const { neon } = await import('@neondatabase/serverless');
-		const sql = neon(process.env.DATABASE_URL);
+		const sql = neon(env.DATABASE_URL);
 		await sql`DELETE FROM images WHERE category = ${category}`;
 		return;
 	}
@@ -124,7 +128,7 @@ export async function deleteAllByCategory(category) {
 export async function deleteImage(id) {
 	if (isVercel()) {
 		const { neon } = await import('@neondatabase/serverless');
-		const sql = neon(process.env.DATABASE_URL);
+		const sql = neon(env.DATABASE_URL);
 		await ensureTable(sql);
 		await sql`DELETE FROM images WHERE id = ${id}`;
 		return true;
@@ -145,7 +149,7 @@ export async function deleteImage(id) {
 export async function getImageData(id) {
 	if (isVercel()) {
 		const { neon } = await import('@neondatabase/serverless');
-		const sql = neon(process.env.DATABASE_URL);
+		const sql = neon(env.DATABASE_URL);
 		const rows = await sql`SELECT data FROM images WHERE id = ${id}`;
 		if (rows.length === 0) return null;
 		return rows[0].data;
