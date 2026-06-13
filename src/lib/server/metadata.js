@@ -2,6 +2,8 @@ import { randomUUID } from 'crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
 
+import sharp from 'sharp';
+
 const DATA_DIR = 'data';
 const UPLOADS_DIR = 'data/uploads';
 const METADATA_FILE = join(DATA_DIR, 'images.json');
@@ -16,15 +18,10 @@ function ensureDirs() {
 }
 
 async function compress(buffer) {
-	try {
-		const { default: sharp } = await import('sharp');
-		return await sharp(buffer)
-			.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-			.webp({ quality: 60 })
-			.toBuffer();
-	} catch {
-		return buffer;
-	}
+	return await sharp(buffer)
+		.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
+		.webp({ quality: 60 })
+		.toBuffer();
 }
 
 async function ensureTable(sql) {
