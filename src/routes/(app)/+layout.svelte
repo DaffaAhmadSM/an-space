@@ -1,11 +1,18 @@
 
 <script>
 	// import profile from '$lib/assets/profile/profile.png';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import '../../app.css';
 	import { slide } from 'svelte/transition';
-	let showMenu = false;
-	let top;
+	/**
+	 * @typedef {Object} Props
+	 * @property {import('svelte').Snippet} [children]
+	 */
+
+	/** @type {Props} */
+	let { children } = $props();
+	let showMenu = $state(false);
+	let top = $state();
 	function toggleMenu() {
 		showMenu = !showMenu;
 	}
@@ -18,13 +25,13 @@
 			<div class="mx-14">
 			  <div class="flex items-center justify-between h-20">
 				<div class="flex-shrink-0">
-					{#if $page.route.id === '/(app)'}
-					<button class="font-semibold text-3xl tracking-baseSpace" on:click={onTop}>HOME</button>
+					{#if page.route.id === '/(app)'}
+					<button class="font-semibold text-3xl tracking-baseSpace" onclick={onTop}>HOME</button>
 					{:else}
 					<a href="/" class="font-semibold text-3xl tracking-baseSpace">HOME</a>
 					{/if}
 				</div>
-				<button class="block md:hidden text-white focus:outline-none" on:click={toggleMenu} aria-label="nav-toggle" id="nav-toggle" title="nav-toggle">
+				<button class="block md:hidden text-white focus:outline-none" onclick={toggleMenu} aria-label="nav-toggle" id="nav-toggle" title="nav-toggle">
 				  <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 					{#if showMenu}
 					  <path fill-rule="evenodd" clip-rule="evenodd" d="M19.293 4.707a1 1 0 010 1.414l-14 14a1 1 0 01-1.414-1.414l14-14a1 1 0 011.414 0z" />
@@ -46,15 +53,15 @@
 			{#if showMenu}
 			<div transition:slide|global class="md:hidden absolute top-20 w-full bg-secondary">
 			  <div class="flex flex-col items-start py-4 px-4 tracking-baseSpace font-bold">
-				<a href="#about" class="hover:text-white text-xl py-2" on:click={toggleMenu}>About</a>
-				<a href="#art" class="hover:text-white text-xl py-2" on:click={toggleMenu}>Art</a>
-				<a href="#contact" class="hover:text-white text-xl py-2" on:click={toggleMenu}>contact</a>
+				<a href="#about" class="hover:text-white text-xl py-2" onclick={toggleMenu}>About</a>
+				<a href="#art" class="hover:text-white text-xl py-2" onclick={toggleMenu}>Art</a>
+				<a href="#contact" class="hover:text-white text-xl py-2" onclick={toggleMenu}>contact</a>
 			  </div>
 			</div>
 			{/if}
 		</nav>
 		
-		<slot />
+		{@render children?.()}
 	</div>
 
 <style>

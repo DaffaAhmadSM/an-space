@@ -58,7 +58,7 @@
 
 <div class="h-screen grid place-content-center bg-[#F5F5DC]">
         <div class="absolute text-[#E1735E] w-full top-4">
-            <button on:click={handleBack} class=" flex flex-row items-center text-3xl font-semibold translate-x-24">
+            <button onclick={handleBack} class=" flex flex-row items-center text-3xl font-semibold translate-x-24">
                 <img src="{arrowVector}" alt="" class="inline-block w-5 -rotate-90 mr-2 align-middle">
                 <div>Back</div>
             </button>
