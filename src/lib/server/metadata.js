@@ -5,10 +5,9 @@ import { join } from 'path';
 const DATA_DIR = 'data';
 const UPLOADS_DIR = 'data/uploads';
 const METADATA_FILE = join(DATA_DIR, 'images.json');
-const METADATA_BLOB = '_metadata/images.json';
 
 function isVercel() {
-	return process.env.VERCEL === '1';
+	return !!process.env.DATABASE_URL;
 }
 
 function ensureDirs() {
@@ -28,32 +27,70 @@ async function compress(buffer) {
 	}
 }
 
+async function ensureTable(sql) {
+	await sql`CREATE TABLE IF NOT EXISTS images (
+		id TEXT PRIMARY KEY,
+		filename TEXT NOT NULL,
+		category TEXT NOT NULL,
+		original_name TEXT NOT NULL,
+		uploaded_at TEXT NOT NULL,
+		data BYTEA NOT NULL
+	)`;
+	try {
+		await sql`ALTER TABLE images ADD COLUMN IF NOT EXISTS data BYTEA`;
+	} catch {
+		/* column exists or not supported */
+	}
+}
+
 export async function getImages(category) {
+	if (isVercel()) {
+		const { neon } = await import('@neondatabase/serverless');
+		const sql = neon(process.env.DATABASE_URL);
+		await ensureTable(sql);
+		const rows = category
+			? await sql`SELECT id, filename, category, original_name, uploaded_at FROM images WHERE category = ${category} ORDER BY uploaded_at DESC`
+			: await sql`SELECT id, filename, category, original_name, uploaded_at FROM images ORDER BY uploaded_at DESC`;
+		return rows.map((r) => ({
+			id: r.id,
+			url: `/api/image/${r.id}`,
+			filename: r.filename,
+			category: r.category,
+			originalName: r.original_name,
+			uploadedAt: r.uploaded_at
+		}));
+	}
+
 	const images = await readMetadata();
 	if (category) return images.filter((img) => img.category === category);
 	return images;
 }
 
 export async function saveImage(file, category) {
-	const images = await readMetadata();
 	const id = randomUUID();
 	let buffer = Buffer.from(await file.arrayBuffer());
 	buffer = await compress(buffer);
 	const filename = `${id}.webp`;
 
-	let url;
 	if (isVercel()) {
-		const { put } = await import('@vercel/blob');
-		const result = await put(`${category}/${filename}`, buffer, {
-			access: 'public',
-			addRandomSuffix: false
-		});
-		url = result.url;
-	} else {
-		ensureDirs();
-		writeFileSync(join(UPLOADS_DIR, filename), buffer);
-		url = `/uploads/${filename}`;
+		const { neon } = await import('@neondatabase/serverless');
+		const sql = neon(process.env.DATABASE_URL);
+		await ensureTable(sql);
+		await sql`INSERT INTO images (id, filename, category, original_name, uploaded_at, data)
+			VALUES (${id}, ${filename}, ${category}, ${file.name}, ${new Date().toISOString()}, ${buffer})`;
+		return {
+			id,
+			url: `/api/image/${id}`,
+			filename,
+			category,
+			originalName: file.name,
+			uploadedAt: new Date().toISOString()
+		};
 	}
+
+	ensureDirs();
+	writeFileSync(join(UPLOADS_DIR, filename), buffer);
+	const url = `/uploads/${filename}`;
 
 	const image = {
 		id,
@@ -63,60 +100,57 @@ export async function saveImage(file, category) {
 		originalName: file.name,
 		uploadedAt: new Date().toISOString()
 	};
+	const images = await readMetadata();
 	images.push(image);
 	await writeMetadata(images);
 	return image;
 }
 
 export async function deleteImage(id) {
+	if (isVercel()) {
+		const { neon } = await import('@neondatabase/serverless');
+		const sql = neon(process.env.DATABASE_URL);
+		await ensureTable(sql);
+		await sql`DELETE FROM images WHERE id = ${id}`;
+		return true;
+	}
+
 	const images = await readMetadata();
 	const index = images.findIndex((img) => img.id === id);
 	if (index === -1) return false;
-
 	const image = images[index];
-	if (isVercel()) {
-		try {
-			const { del } = await import('@vercel/blob');
-			await del(image.url);
-		} catch {
-			/* blob may be gone */
-		}
-	} else {
-		const filepath = join(UPLOADS_DIR, image.filename);
-		if (existsSync(filepath)) unlinkSync(filepath);
-	}
-
+	const filepath = join(UPLOADS_DIR, image.filename);
+	if (existsSync(filepath)) unlinkSync(filepath);
 	images.splice(index, 1);
 	await writeMetadata(images);
 	return true;
 }
 
-async function readMetadata() {
+/** Read image data for serving via /api/image/[id] */
+export async function getImageData(id) {
 	if (isVercel()) {
-		try {
-			const { get } = await import('@vercel/blob');
-			const { blob } = await get(METADATA_BLOB);
-			const text = await blob.text();
-			return JSON.parse(text);
-		} catch {
-			return [];
-		}
-	} else {
-		ensureDirs();
-		if (!existsSync(METADATA_FILE)) return [];
-		return JSON.parse(readFileSync(METADATA_FILE, 'utf-8'));
+		const { neon } = await import('@neondatabase/serverless');
+		const sql = neon(process.env.DATABASE_URL);
+		const rows = await sql`SELECT data FROM images WHERE id = ${id}`;
+		if (rows.length === 0) return null;
+		return rows[0].data;
 	}
+
+	const images = await readMetadata();
+	const image = images.find((img) => img.id === id);
+	if (!image) return null;
+	const filepath = join(UPLOADS_DIR, image.filename);
+	if (!existsSync(filepath)) return null;
+	return readFileSync(filepath);
+}
+
+async function readMetadata() {
+	ensureDirs();
+	if (!existsSync(METADATA_FILE)) return [];
+	return JSON.parse(readFileSync(METADATA_FILE, 'utf-8'));
 }
 
 async function writeMetadata(data) {
-	if (isVercel()) {
-		const { put } = await import('@vercel/blob');
-		await put(METADATA_BLOB, JSON.stringify(data, null, 2), {
-			access: 'public',
-			addRandomSuffix: false
-		});
-	} else {
-		ensureDirs();
-		writeFileSync(METADATA_FILE, JSON.stringify(data, null, 2));
-	}
+	ensureDirs();
+	writeFileSync(METADATA_FILE, JSON.stringify(data, null, 2));
 }
