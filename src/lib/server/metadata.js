@@ -20,7 +20,7 @@ async function compress(buffer) {
 		const { default: sharp } = await import('sharp');
 		return await sharp(buffer)
 			.resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-			.webp({ quality: 80 })
+			.webp({ quality: 60 })
 			.toBuffer();
 	} catch {
 		return buffer;
